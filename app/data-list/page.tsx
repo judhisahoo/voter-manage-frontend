@@ -1,34 +1,52 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import DashboardLayout from  '@/app/components/DashboardLayout';//'@/components/DashboardLayout';
-import axios from '@/app/lib/axios';//'@/lib/axios';
-import Cookies from 'js-cookie';
-import { 
-  FaSearch, 
-  FaFilter, 
-  FaChevronLeft, 
+import { useState, useEffect } from "react";
+import DashboardLayout from "@/app/components/DashboardLayout"; //'@/components/DashboardLayout';
+import VoterDetailModal from "@/app/components/VoterDetailModal"; //'@/components/VoterDetailModal';
+import axios from "@/app/lib/axios"; //'@/lib/axios';
+import Cookies from "js-cookie";
+import {
+  FaSearch,
+  FaFilter,
+  FaChevronLeft,
   FaChevronRight,
   FaTrash,
-  FaBan
-} from 'react-icons/fa';
+  FaBan,
+  FaEye,
+} from "react-icons/fa";
+
+interface VoterRecord {
+  _id: string;
+  epic_no: string;
+  name: string;
+  age: string;
+  gender: string;
+  state: string;
+  district: string;
+  status: string;
+  isDisabled: boolean;
+  createdAt: string;
+  dataSource: string;
+}
 
 export default function DataListPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [selectedVoter, setSelectedVoter] = useState<VoterRecord | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 0,
   });
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   useEffect(() => {
-    const userData = Cookies.get('user');
+    const userData = Cookies.get("user");
     if (userData) {
       setUser(JSON.parse(userData));
     }
@@ -38,7 +56,7 @@ export default function DataListPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('/voter-data', {
+      const response = await axios.get("/voter-data", {
         params: {
           page: pagination.page,
           limit: pagination.limit,
@@ -51,7 +69,7 @@ export default function DataListPage() {
       setData(response.data.data);
       setPagination(response.data.pagination);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -62,25 +80,44 @@ export default function DataListPage() {
     fetchData();
   };
 
+  const handleViewDetails = async (voterRecord: VoterRecord) => {
+    try {
+      // Fetch full details from API
+      const response = await axios.get(`/voter-data/${voterRecord._id}`);
+      setSelectedVoter(response.data);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching voter details:", error);
+      // Fallback to existing data if API fails
+      setSelectedVoter(voterRecord);
+      setIsModalOpen(true);
+    }
+  };
+
   const handleDisable = async (epicNo: string) => {
-    if (!confirm('Are you sure you want to disable this record?')) return;
+    if (!confirm("Are you sure you want to disable this record?")) return;
 
     try {
       await axios.post(`/voter-data/disable/${epicNo}`);
       fetchData();
     } catch (error) {
-      console.error('Error disabling record:', error);
+      console.error("Error disabling record:", error);
     }
   };
 
   const handleDelete = async (epicNo: string) => {
-    if (!confirm('Are you sure you want to delete this record? This action cannot be undone.')) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this record? This action cannot be undone."
+      )
+    )
+      return;
 
     try {
       await axios.delete(`/voter-data/${epicNo}`);
       fetchData();
     } catch (error) {
-      console.error('Error deleting record:', error);
+      console.error("Error deleting record:", error);
     }
   };
 
@@ -89,8 +126,12 @@ export default function DataListPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Voter Data List</h1>
-            <p className="text-gray-500 mt-1">View and manage all voter records</p>
+            <h1 className="text-3xl font-bold text-gray-800">
+              Voter Data List
+            </h1>
+            <p className="text-gray-500 mt-1">
+              View and manage all voter records
+            </p>
           </div>
         </div>
 
@@ -108,7 +149,7 @@ export default function DataListPage() {
                   placeholder="Search..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                 />
                 <button
                   onClick={handleSearch}
@@ -185,11 +226,10 @@ export default function DataListPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         Status
                       </th>
-                      {user?.role === 'admin' && (
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          Actions
-                        </th>
-                      )}
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -214,34 +254,45 @@ export default function DataListPage() {
                           {record.district}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            record.status === 'VALID' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                              record.status === "VALID"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {record.status}
                           </span>
                         </td>
-                        {user?.role === 'admin' && (
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleDisable(record.epic_no)}
-                                className="text-orange-600 hover:text-orange-800"
-                                title="Disable"
-                              >
-                                <FaBan />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(record.epic_no)}
-                                className="text-red-600 hover:text-red-800"
-                                title="Delete"
-                              >
-                                <FaTrash />
-                              </button>
-                            </div>
-                          </td>
-                        )}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleViewDetails(record)}
+                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition"
+                              title="View Details"
+                            >
+                              <FaEye size={18} />
+                            </button>
+                            {user?.role === "admin" && (
+                              <>
+                                <button
+                                  onClick={() => handleDisable(record.epic_no)}
+                                  className="text-orange-600 hover:text-orange-800 hover:bg-orange-50 p-2 rounded transition"
+                                  title="Disable"
+                                >
+                                  <FaBan size={18} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(record.epic_no)}
+                                  className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded transition"
+                                  title="Delete"
+                                >
+                                  <FaTrash size={18} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -251,13 +302,21 @@ export default function DataListPage() {
               {/* Pagination */}
               <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} results
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total
+                  )}{" "}
+                  of {pagination.total} results
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                    onClick={() =>
+                      setPagination({
+                        ...pagination,
+                        page: pagination.page - 1,
+                      })
+                    }
                     disabled={pagination.page === 1}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -267,7 +326,12 @@ export default function DataListPage() {
                     {pagination.page}
                   </span>
                   <button
-                    onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                    onClick={() =>
+                      setPagination({
+                        ...pagination,
+                        page: pagination.page + 1,
+                      })
+                    }
                     disabled={pagination.page >= pagination.totalPages}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -279,6 +343,16 @@ export default function DataListPage() {
           )}
         </div>
       </div>
+
+      {/* Voter Detail Modal */}
+      <VoterDetailModal
+        isOpen={isModalOpen}
+        voter={selectedVoter}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedVoter(null);
+        }}
+      />
     </DashboardLayout>
   );
 }
