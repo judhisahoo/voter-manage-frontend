@@ -29,7 +29,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       Cookies.remove('access_token');
       Cookies.remove('user');
-      window.location.href = '/login';
+      window.location.href = '/voter-data-manage-login';
     }
     return Promise.reject(error);
   }

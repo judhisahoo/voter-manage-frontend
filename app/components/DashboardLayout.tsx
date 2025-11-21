@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleLogout = () => {
     Cookies.remove('access_token');
     Cookies.remove('user');
-    router.push('/login');
+    router.push('/voter-data-manage-login');
   };
 
   return (

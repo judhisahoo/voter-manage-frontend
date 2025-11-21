@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const user = request.cookies.get("user");
 
   const isAuthPage =
-    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/voter-data-manage-login") ||
     request.nextUrl.pathname.startsWith("/register");
 
   const isProtectedRoute =
@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
 
   // Redirect to login if accessing protected route without token
   if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/voter-data-manage-login", request.url));
   }
 
   // Redirect to dashboard if accessing auth pages with token
@@ -44,7 +44,7 @@ export const config = {
     "/search/:path*",
     "/users/:path*",
     "/profile/:path*",
-    "/login",
+    "/voter-data-manage-login",
     "/register",
   ],
 };
