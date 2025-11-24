@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from '@/app/lib/axios'; //'@/lib/axios';
 import Cookies from 'js-cookie';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FaShieldHalved } from 'react-icons/fa6'; // Changed to fa6
