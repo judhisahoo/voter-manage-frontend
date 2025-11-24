@@ -16,10 +16,11 @@ interface User {
   createdAt?: string;
 }
 
+// ✅ Make password optional
 interface FormData {
   name: string;
   email: string;
-  password: string;
+  password?: string; // Changed to optional
   role: 'admin' | 'support';
 }
 
@@ -122,17 +123,25 @@ export default function UsersPage() {
     setError(null);
 
     try {
+      // ✅ Create a clean payload
+      const payload: FormData = {
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+      };
+
+      // Only include password if it's provided and not empty
+      if (formData.password && formData.password.trim() !== '') {
+        payload.password = formData.password;
+      }
+
       if (selectedUser) {
-        
-        if(formData.password.trim()===''){
-          delete formData.password;
-        }
         // Update existing user
-        await apiClient.put(`/users/${selectedUser._id}`, formData);
+        await apiClient.put(`/users/${selectedUser._id}`, payload);
         setSuccessMessage('User updated successfully!');
       } else {
-        // Create new user
-        await apiClient.post('/users', formData);
+        // Create new user (password is required, already validated above)
+        await apiClient.post('/users', payload);
         setSuccessMessage('User created successfully!');
       }
 
@@ -460,7 +469,7 @@ export default function UsersPage() {
                   type="password"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder={selectedUser ? 'Leave blank to keep current' : 'Enter password'}
-                  value={formData.password}
+                  value={formData.password || ''}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   disabled={isSubmitting}
                 />
