@@ -123,6 +123,10 @@ export default function UsersPage() {
 
     try {
       if (selectedUser) {
+        
+        if(formData.password.trim()===''){
+          delete formData.password;
+        }
         // Update existing user
         await apiClient.put(`/users/${selectedUser._id}`, formData);
         setSuccessMessage('User updated successfully!');

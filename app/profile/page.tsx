@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { FaUser, FaEnvelope, FaLock, FaSave } from 'react-icons/fa';
+import { apiClient } from '../lib/secureAxios';
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
@@ -37,6 +38,23 @@ export default function ProfilePage() {
 
     try {
       // Update profile logic
+      if (!formData.name.trim()) {
+        setMessage({type: 'error', text: 'Name is required'});
+        return;
+      }
+      if (!formData.email.trim()) {
+        setMessage({type: 'error', text:'Email is required'});
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        setMessage({type: 'error', text:'Invalid email format'});
+        return;
+      }
+
+      await apiClient.put('/users/profile', {
+        name: formData.name,
+        email: formData.email,
+      });
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
