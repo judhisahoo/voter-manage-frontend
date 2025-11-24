@@ -21,7 +21,7 @@ export default function ProfilePage() {
   // Protect route
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push('/voter-data-manage-login');
     } else if (user) {
       setFormData(prev => ({
         ...prev,

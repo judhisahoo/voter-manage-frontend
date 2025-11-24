@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   // Don't show layout on login page
-  if (pathname === '/login' || !isAuthenticated) {
+  if (pathname === '/voter-data-manage-login' || !isAuthenticated) {
     return <>{children}</>;
   }
 

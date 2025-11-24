@@ -87,7 +87,7 @@ class SecureApiClient {
       if (response.status === 401) {
         Cookies.remove('access_token');
         Cookies.remove('user');
-        window.location.href = '/login';
+        window.location.href = '/voter-data-manage-login';
         throw new Error('Unauthorized');
       }
 

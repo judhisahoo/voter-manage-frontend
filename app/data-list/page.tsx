@@ -33,7 +33,7 @@ export default function DataListPage() {
   // Protect route - redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push('/voter-data-manage-login');
     }
   }, [isAuthenticated, authLoading, router]);
 

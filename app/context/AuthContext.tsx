@@ -113,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     Cookies.remove('user');
     Cookies.remove('access_token');
-    router.push('/login');
+    router.push('/voter-data-manage-login');
   }, [router]);
 
   const clearError = useCallback(() => {

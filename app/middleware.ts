@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/users')) {
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      return NextResponse.redirect(new URL('/voter-data-manage-login', request.url));
     }
 
     if (user) {
