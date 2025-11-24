@@ -1,4 +1,3 @@
-// src/components/DashboardLayout.tsx
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
@@ -8,11 +7,14 @@ import {
   FaHome, 
   FaSearch, 
   FaUsers, 
-  FaShieldAlt, 
   FaUser, 
   FaSignOutAlt,
-  FaDatabase
+  FaDatabase,
+  FaUserShield,
+  FaBars,
+  FaTimes
 } from 'react-icons/fa';
+import { useAuth } from '@/app/context/AuthContext';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -21,21 +23,36 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const { user, logout, isAuthenticated } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Handle mobile menu
   useEffect(() => {
-    const userData = Cookies.get('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    const handleResize = () => {
+      const isMobileScreen = window.innerWidth < 768;
+      setIsMobile(isMobileScreen);
+      if (!isMobileScreen) {
+        setSidebarOpen(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Don't show layout on login page
+  if (pathname === '/login' || !isAuthenticated) {
+    return <>{children}</>;
+  }
 
   const navItems = user?.role === 'admin'
     ? [
         { label: 'Dashboard', path: '/dashboard', icon: FaHome },
         { label: 'Search', path: '/search', icon: FaSearch },
         { label: 'Data List', path: '/data-list', icon: FaDatabase },
-        { label: 'Manage Users', path: '/users', icon: FaShieldAlt },
+        { label: 'Manage Users', path: '/users', icon: FaUserShield },
         { label: 'Profile', path: '/profile', icon: FaUser }
       ]
     : [
@@ -46,19 +63,47 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       ];
 
   const handleLogout = () => {
-    Cookies.remove('access_token');
-    Cookies.remove('user');
-    router.push('/voter-data-manage-login');
+    if (confirm('Are you sure you want to logout?')) {
+      logout();
+    }
+  };
+
+  const handleNavClick = (path: string) => {
+    router.push(path);
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed top-4 left-4 z-40 md:hidden bg-indigo-600 text-white p-2 rounded-lg"
+      >
+        {sidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+      </button>
+
+      {/* Sidebar Overlay */}
+      {sidebarOpen && isMobile && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-20"
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg flex flex-col">
+      <div
+        className={`${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } fixed md:static w-64 h-screen bg-white shadow-lg flex flex-col transition-transform duration-300 z-30`}
+      >
+        {/* Logo */}
         <div className="p-6 border-b">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 p-2 rounded-lg">
-              <FaShieldAlt className="text-white text-2xl" />
+              <FaUserShield className="text-white text-2xl" />
             </div>
             <div>
               <h2 className="font-bold text-gray-800">Voter System</h2>
@@ -67,23 +112,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                pathname === item.path
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <item.icon className="text-xl" />
-              <span className="font-medium">{item.label}</span>
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNavClick(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                  isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <item.icon className="text-xl" />
+                <span className="font-medium">{item.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
+        {/* Logout Button */}
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
@@ -96,8 +146,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-auto">
-        {children}
+      <div className="flex-1 overflow-auto">
+        <div className="p-4 md:p-8">
+          {children}
+        </div>
       </div>
     </div>
   );

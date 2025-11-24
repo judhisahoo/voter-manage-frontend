@@ -6,29 +6,31 @@ import axios from '@/app/lib/axios'; //'@/lib/axios';
 import Cookies from 'js-cookie';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FaShieldHalved } from 'react-icons/fa6'; // Changed to fa6
+import { useAuth } from '../context/AuthContext';
+
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  //const [loadingLogin, setLoadingLogin] = useState(false);
+  //const [errorLogin, setErrorLogin] = useState('');
+
+  const { login, loading, error, clearError } = useAuth();
 
   const handleLogin = async () => {
-    setLoading(true);
-    setError('');
 
     try {
-      const response = await axios.post('/auth/login', formData);
-      
-      Cookies.set('access_token', response.data.access_token, { expires: 7 });
-      Cookies.set('user', JSON.stringify(response.data.user), { expires: 7 });
-      
-      router.push('/dashboard');
+      let returnStatus = await login(formData.email, formData.password);
+      if(returnStatus){
+        router.push('/dashboard');
+      }else{
+        console.log('Login failed');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      //setErrorLogin(err.response?.data?.message || 'Login failed');
     } finally {
-      setLoading(false);
+     // setLoadingLogin(false);
     }
   };
 

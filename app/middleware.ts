@@ -4,33 +4,41 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("access_token");
   const user = request.cookies.get("user");
+   const pathname = request.nextUrl.pathname;
 
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith("/voter-data-manage-login") ||
-    request.nextUrl.pathname.startsWith("/register");
-
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/search") ||
-    request.nextUrl.pathname.startsWith("/users") ||
-    request.nextUrl.pathname.startsWith("/profile");
-
-  // Redirect to login if accessing protected route without token
-  if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/voter-data-manage-login", request.url));
+   // Unprotected routes
+  if (pathname === '/voter-data-manage-login') {
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.next();
   }
 
-  // Redirect to dashboard if accessing auth pages with token
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Protected routes
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/search') ||
+    pathname.startsWith('/data-list') ||
+    pathname.startsWith('/profile')
+  ) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/voter-data-manage-login', request.url));
+    }
   }
 
-  // Admin-only routes
-  if (request.nextUrl.pathname.startsWith("/users")) {
+  if (pathname.startsWith('/users')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
     if (user) {
-      const userData = JSON.parse(user.value);
-      if (userData.role !== "admin") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+      try {
+        const userData = JSON.parse(user.value);
+        if (userData.role !== 'admin') {
+          return NextResponse.redirect(new URL('/dashboard', request.url));
+        }
+      } catch (error) {
+        return NextResponse.redirect(new URL('/voter-data-manage-login', request.url));
       }
     }
   }
@@ -40,11 +48,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/search/:path*",
-    "/users/:path*",
-    "/profile/:path*",
-    "/voter-data-manage-login",
-    "/register",
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
