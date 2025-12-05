@@ -26,6 +26,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
+  updateUser: (userData: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -120,6 +121,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
   }, []);
 
+  const updateUser = useCallback((userData: any) => {
+    // Map API response user object to User interface
+    // API returns _id, but User interface expects id
+    const updatedUser: User = {
+      id: userData._id || userData.id,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+    };
+
+    // Update state
+    setUser(updatedUser);
+
+    // Update cookie
+    Cookies.set('user', JSON.stringify(updatedUser), {
+      expires: 7,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+  }, []);
+
   const value: AuthContextType = {
     user,
     loading,
@@ -128,6 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     logout,
     clearError,
+    updateUser,
   };
 
   return (

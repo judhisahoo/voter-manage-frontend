@@ -3,18 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
-import { FaUser, FaEnvelope, FaLock, FaSave } from 'react-icons/fa';
+import { FaUser, FaSave } from 'react-icons/fa';
 import { apiClient } from '../lib/secureAxios';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, logout, updateUser } = useAuth();
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -51,11 +48,17 @@ export default function ProfilePage() {
         return;
       }
 
-      await apiClient.put('/users/profile', {
+      const response = await apiClient.put<{ message: string; user: any }>('/users/profile', {
         name: formData.name,
         email: formData.email,
       });
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      
+      // Update user in AuthContext with the response data
+      if (response && response.user) {
+        updateUser(response.user);
+      }
+      
+      setMessage({ type: 'success', text: response?.message || 'Profile updated successfully!' });
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
     } finally {
@@ -63,35 +66,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleChangePassword = async () => {
-    if (formData.newPassword !== formData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
-      return;
-    }
-
-    if (formData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
-      return;
-    }
-
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      // Change password logic
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      }));
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to change password' });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // profile-only page; password management moved to `app/profile/change-password`
 
   if (!isAuthenticated) {
     return null;
@@ -170,61 +145,7 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
-
-      {/* Change Password */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <FaLock className="text-indigo-600" />
-          Change Password
-        </h2>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Password
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              value={formData.currentPassword}
-              onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              value={formData.newPassword}
-              onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-            />
-          </div>
-
-          <button
-            onClick={handleChangePassword}
-            disabled={loading}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2"
-          >
-            <FaLock />
-            {loading ? 'Updating...' : 'Update Password'}
-          </button>
-        </div>
-      </div>
+      
 
       {/* Logout Section */}
       <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
