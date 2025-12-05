@@ -77,6 +77,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
+  // CHANGE 1: New handler function for mobile search button
+  const handleSearchClick = () => {
+    router.push('/search');
+    // Close sidebar if open
+    if (isMobile && sidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile Menu Button */}
@@ -85,6 +94,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         className="fixed top-4 left-4 z-50 md:hidden bg-indigo-600 text-white p-2 rounded-lg"
       >
         {sidebarOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+      </button>
+
+      {/* CHANGE 3: New Search Icon Button - Positioned at right end of the row */}
+      <button
+        onClick={handleSearchClick}
+        className="fixed top-4 right-4 z-50 md:hidden bg-indigo-600 text-white p-2 rounded-lg"
+        aria-label="Search"
+      >
+        <FaSearch size={24} />
       </button>
 
       {/* Sidebar Overlay */}
