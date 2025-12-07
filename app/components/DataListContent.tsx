@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
+import { useLanguage } from "@/app/context/LanguageContext";
 import { apiClient } from "@/app/lib/secureAxios";
 import {
   FaChevronLeft,
@@ -45,6 +46,7 @@ interface ApiResponse {
 
 export default function DataListContent() {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
 
   // ========== State Management ==========
   const [data, setData] = useState<VoterData[]>([]);
@@ -212,27 +214,27 @@ export default function DataListContent() {
   // ========== API Actions ==========
   const handleDisable = useCallback(
     async (epicNo: string, name: string) => {
-      const confirmMsg = `Are you sure you want to disable record for ${name}?\n\nThis will mark the record as inactive but won't delete it.`;
+      const confirmMsg = t('dataManagement.confirmDisable', { name });
       if (!confirm(confirmMsg)) return;
 
       try {
         await apiClient.post(`/voter-data/disable/${epicNo}`, {});
         setData(data.filter((d) => d.epic_no !== epicNo));
         showMessage(
-          `Record for ${name} has been disabled successfully`,
+          t('dataManagement.recordDisabled', { name }),
           "success"
         );
       } catch (err: any) {
-        showMessage(err.message || "Failed to disable record", "error");
+        showMessage(err.message || t('dataManagement.failedToDisable'), "error");
         console.error("Disable error:", err);
       }
     },
-    [data, showMessage]
+    [data, showMessage, t]
   );
 
   const handleDelete = useCallback(
     async (epicNo: string, name: string) => {
-      const confirmMsg = `Are you sure you want to DELETE the record for ${name}?\n\nThis action CANNOT be undone.`;
+      const confirmMsg = t('dataManagement.confirmDelete', { name });
       if (!confirm(confirmMsg)) return;
 
       try {
@@ -240,15 +242,15 @@ export default function DataListContent() {
         setData(data.filter((d) => d.epic_no !== epicNo));
         setTotalRecords((prev) => Math.max(0, prev - 1));
         showMessage(
-          `Record for ${name} has been permanently deleted`,
+          t('dataManagement.recordDeleted', { name }),
           "success"
         );
       } catch (err: any) {
-        showMessage(err.message || "Failed to delete record", "error");
+        showMessage(err.message || t('dataManagement.failedToDelete'), "error");
         console.error("Delete error:", err);
       }
     },
-    [data, showMessage]
+    [data, showMessage, t]
   );
 
   const handleRefresh = useCallback(() => {
@@ -349,16 +351,16 @@ export default function DataListContent() {
       {/* ========== Header ========== */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Voter Data List</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t('dataManagement.voterDataList')}</h1>
           <p className="text-gray-500 mt-1">
-            Manage and search voter records
+            {t('dataManagement.manageAndSearch')}
             {totalRecords > 0 && (
               <span className="ml-2 text-sm">
-                (Total:{" "}
+                ({t('dataManagement.totalRecords')}:{" "}
                 <span className="font-semibold text-gray-700">
                   {totalRecords.toLocaleString()}
                 </span>{" "}
-                records)
+                {t('dataManagement.records')})
               </span>
             )}
           </p>
@@ -371,16 +373,16 @@ export default function DataListContent() {
             title="Refresh data"
           >
             <FaSync className={refreshing ? "animate-spin" : ""} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('dataManagement.refresh')}</span>
           </button>
           <button
             onClick={handleExportCSV}
             disabled={displayedData.length === 0}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Export as CSV"
+            title={t('dataManagement.export')}
           >
             <FaDownload />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">{t('dataManagement.export')}</span>
           </button> 
         </div>
       </div>
@@ -421,13 +423,13 @@ export default function DataListContent() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quick Search
+              {t('dataManagement.quickSearch')}
             </label>
             <div className="relative">
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, EPIC number..."
+                placeholder={t('dataManagement.searchPlaceholder')}
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 value={search}
                 onChange={(e) => {
@@ -455,14 +457,14 @@ export default function DataListContent() {
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
               <FaFilter size={16} />
-              Advanced Filters {filterOpen ? "▼" : "▶"}
+              {t('dataManagement.advancedFilters')} {filterOpen ? "▼" : "▶"}
             </button>
             {(stateFilter || genderFilter || statusFilter) && (
               <button
                 onClick={handleResetFilters}
                 className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition"
               >
-                Reset Filters
+                {t('dataManagement.resetFilters')}
               </button>
             )}
           </div>
@@ -471,7 +473,7 @@ export default function DataListContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort By
+                  {t('dataManagement.sortBy')}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -481,17 +483,17 @@ export default function DataListContent() {
                     setPage(1);
                   }}
                 >
-                  <option value="createdAt">Date Added</option>
-                  <option value="name">Name</option>
-                  <option value="epic_no">EPIC No</option>
-                  <option value="state">State</option>
-                  <option value="age">Age</option>
+                  <option value="createdAt">{t('profile.profileUpdated')}</option>
+                  <option value="name">{t('dataManagement.name')}</option>
+                  <option value="epic_no">{t('dataManagement.epicNo')}</option>
+                  <option value="state">{t('dataManagement.state')}</option>
+                  <option value="age">{t('dataManagement.age')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Order
+                  {t('dataManagement.order')}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -500,14 +502,14 @@ export default function DataListContent() {
                     setSortOrder(e.target.value as "asc" | "desc")
                   }
                 >
-                  <option value="desc">Descending (New First)</option>
-                  <option value="asc">Ascending (Old First)</option>
+                  <option value="desc">{t('dataManagement.descendingNewFirst')}</option>
+                  <option value="asc">{t('dataManagement.ascendingOldFirst')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State
+                  {t('dataManagement.state')}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -517,7 +519,7 @@ export default function DataListContent() {
                     setPage(1);
                   }}
                 >
-                  <option value="">All States</option>
+                  <option value="">{t('dataManagement.allStates')}</option>
                   {uniqueStates.map((state) => (
                     <option key={state} value={state}>
                       {state}
@@ -528,7 +530,7 @@ export default function DataListContent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Gender
+                  {t('dataManagement.gender')}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -538,7 +540,7 @@ export default function DataListContent() {
                     setPage(1);
                   }}
                 >
-                  <option value="">All Genders</option>
+                  <option value="">{t('dataManagement.allGenders')}</option>
                   {uniqueGenders.map((gender) => (
                     <option key={gender} value={gender}>
                       {gender}
@@ -549,7 +551,7 @@ export default function DataListContent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Records Per Page
+                  {t('dataManagement.recordsPerPage')}
                 </label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -577,7 +579,7 @@ export default function DataListContent() {
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
             <p className="text-gray-500 mt-4 font-medium">
-              Loading voter records...
+              {t('dataManagement.loadingVoterRecords')}
             </p>
           </div>
         ) : displayedData.length === 0 ? (
@@ -585,15 +587,15 @@ export default function DataListContent() {
             <FaSearch className="text-4xl text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">
               {search || stateFilter || genderFilter || statusFilter
-                ? "No records found matching your filters"
-                : "No voter records available"}
+                ? t('dataManagement.noRecordsFound')
+                : t('dataManagement.noVoterRecords')}
             </p>
             {(search || stateFilter || genderFilter || statusFilter) && (
               <button
                 onClick={handleResetFilters}
                 className="mt-4 text-indigo-600 hover:text-indigo-700 font-semibold"
               >
-                Clear filters and try again
+                {t('dataManagement.clearFilters')}
               </button>
             )}
           </div>
@@ -604,33 +606,33 @@ export default function DataListContent() {
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
                   <tr>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      EPIC No
+                      {t('dataManagement.epicNo')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      Name
+                      {t('dataManagement.name')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      Age
+                      {t('dataManagement.age')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      Gender
+                      {t('dataManagement.gender')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      State
+                      {t('dataManagement.state')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      District
+                      {t('dataManagement.district')}
                     </th>
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      Status
+                      {t('dataManagement.status')}
                     </th>
                     {data[0]?.dataSource && (
                       <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                        Source
+                        {t('dataManagement.source')}
                       </th>
                     )}
                     <th className="px-6 py-4 text-left font-semibold text-gray-700">
-                      Actions
+                      {t('dataManagement.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -683,7 +685,7 @@ export default function DataListContent() {
                             onClick={() => handleViewDetails(record)}
                             disabled={loadingDetails}
                             className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition disabled:opacity-50"
-                            title="View Details"
+                            title={t('dataManagement.viewDetails')}
                           >
                             <FaEye size={18} />
                           </button>
@@ -694,7 +696,7 @@ export default function DataListContent() {
                                   handleDisable(record.epic_no, record.name)
                                 }
                                 className="p-2 text-orange-600 hover:bg-orange-50 rounded transition"
-                                title="Disable record"
+                                title={t('dataManagement.disableRecord')}
                               >
                                 <FaBan size={16} />
                               </button>
@@ -703,7 +705,7 @@ export default function DataListContent() {
                                   handleDelete(record.epic_no, record.name)
                                 }
                                 className="p-2 text-red-600 hover:bg-red-50 rounded transition"
-                                title="Delete record permanently"
+                                title={t('dataManagement.deleteRecord')}
                               >
                                 <FaTrash size={16} />
                               </button>
@@ -721,20 +723,20 @@ export default function DataListContent() {
             {totalPages > 1 && (
               <div className="px-6 py-4 border-t bg-gradient-to-r from-gray-50 to-gray-100 flex items-center justify-between flex-wrap gap-4">
                 <div className="text-sm text-gray-600">
-                  Page{" "}
-                  <span className="font-semibold text-gray-800">{page}</span> of{" "}
+                  {t('dataManagement.page')}{" "}
+                  <span className="font-semibold text-gray-800">{page}</span> {t('dataManagement.of')}{" "}
                   <span className="font-semibold text-gray-800">
                     {totalPages}
                   </span>
                   {totalRecords > 0 && (
                     <>
                       {" "}
-                      • Showing{" "}
+                      • {t('dataManagement.showing')}{" "}
                       <span className="font-semibold text-gray-800">
                         {(page - 1) * limit + 1}-
                         {Math.min(page * limit, totalRecords)}
                       </span>{" "}
-                      of{" "}
+                      {t('dataManagement.of')}{" "}
                       <span className="font-semibold text-gray-800">
                         {totalRecords}
                       </span>

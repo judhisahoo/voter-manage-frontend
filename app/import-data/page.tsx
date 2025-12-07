@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { FaFileImport, FaFileExcel, FaFileCsv, FaUpload, FaTimes, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import DashboardLayout from '@/app/components/DashboardLayout';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import Cookies from 'js-cookie';
 
 export default function ImportDataPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -18,6 +20,8 @@ export default function ImportDataPage() {
   const [message, setMessage] = useState('');
   const [dragActive, setDragActive] = useState(false);
 
+  const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+
   // Redirect non-admin users
   useEffect(() => {
     if (isAuthenticated && user?.role !== 'admin') {
@@ -25,30 +29,10 @@ export default function ImportDataPage() {
     }
   }, [isAuthenticated, user, router]);
 
-  // Only allow admin access
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Access denied. Admin only.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const allowedTypes = [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-    'application/vnd.ms-excel', // .xls
-    'text/csv', // .csv
-    'application/csv',
-  ];
-
-  const allowedExtensions = ['.xlsx', '.xls', '.csv'];
-
   const validateFile = (file: File): boolean => {
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!allowedExtensions.includes(extension)) {
-      setMessage('Invalid file type. Please upload Excel (.xlsx, .xls) or CSV (.csv) files only.');
+      setMessage(t('dataManagement.invalidFileType'));
       setUploadStatus('error');
       return false;
     }
@@ -89,7 +73,7 @@ export default function ImportDataPage() {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setMessage('Please select a file first.');
+      setMessage(t('dataManagement.selectFileFirst'));
       setUploadStatus('error');
       return;
     }
@@ -113,20 +97,20 @@ export default function ImportDataPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
+        throw new Error(errorData.message || t('dataManagement.uploadFailed'));
       }
 
       const result = await response.json();
-      console.log('result ::',result);
+      console.log('result ::', result);
       setUploadStatus('success');
-      setMessage(result.message || 'File uploaded successfully!');
+      setMessage(result.message || t('dataManagement.uploadSuccess'));
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error: any) {
       setUploadStatus('error');
-      setMessage(error.message || 'Failed to upload file. Please try again.');
+      setMessage(error.message || t('dataManagement.uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -150,15 +134,26 @@ export default function ImportDataPage() {
     return <FaFileExcel className="text-green-600 text-4xl" />;
   };
 
+  // Only allow admin access
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500">{t('dataManagement.accessDenied')}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
             <FaFileImport className="text-indigo-600" />
-            Import Data
+            {t('dataManagement.importData')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Upload Excel (.xlsx, .xls) or CSV (.csv) files to import data into the system.
+            {t('dataManagement.importDescription')}
           </p>
         </div>
 
@@ -182,17 +177,17 @@ export default function ImportDataPage() {
                 </div>
               </div>
               <p className="text-gray-700 font-medium mb-2">
-                Drag and drop your file here
+                {t('dataManagement.dragDropFile')}
               </p>
-              <p className="text-gray-500 text-sm mb-4">or</p>
+              <p className="text-gray-500 text-sm mb-4">{t('dataManagement.or')}</p>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
               >
-                Browse Files
+                {t('dataManagement.browseFiles')}
               </button>
               <p className="text-gray-400 text-sm mt-4">
-                Supported formats: Excel (.xlsx, .xls), CSV (.csv)
+                {t('dataManagement.supportedFormats')}
               </p>
             </>
           ) : (
@@ -207,7 +202,7 @@ export default function ImportDataPage() {
               <button
                 onClick={clearFile}
                 className="ml-4 text-red-500 hover:text-red-700 p-2"
-                title="Remove file"
+                title={t('dataManagement.removeFile')}
               >
                 <FaTimes size={20} />
               </button>
@@ -270,12 +265,12 @@ export default function ImportDataPage() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Uploading...
+                {t('dataManagement.uploading')}
               </>
             ) : (
               <>
                 <FaUpload />
-                Upload File
+                {t('dataManagement.uploadFile')}
               </>
             )}
           </button>
@@ -283,12 +278,12 @@ export default function ImportDataPage() {
 
         {/* Instructions */}
         <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-800 mb-3">Instructions</h3>
+          <h3 className="font-semibold text-gray-800 mb-3">{t('dataManagement.instructions')}</h3>
           <ul className="text-sm text-gray-600 space-y-2">
-            <li>• Only Excel (.xlsx, .xls) and CSV (.csv) files are accepted</li>
-            <li>• Ensure your file has the correct column headers</li>
-            <li>• Maximum file size: 10MB</li>
-            <li>• Data will be validated before import</li>
+            <li>• {t('dataManagement.instruction1')}</li>
+            <li>• {t('dataManagement.instruction2')}</li>
+            <li>• {t('dataManagement.instruction3')}</li>
+            <li>• {t('dataManagement.instruction4')}</li>
           </ul>
         </div>
       </div>

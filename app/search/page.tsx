@@ -3,6 +3,7 @@
 import { useState, useEffect,useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { useSearch } from '@/app/hooks/useSearch';
 import { FaEye, FaSearch, FaSpinner } from 'react-icons/fa';
 import { apiClient } from "@/app/lib/secureAxios";
@@ -27,6 +28,7 @@ interface VoterData {
 
 export default function SearchPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
   const { results, loading, error, debouncedSearch, clearResults } = useSearch();
@@ -131,7 +133,7 @@ export default function SearchPage() {
           // Only show error message if it's not a 404 (data still shown with fallback)
           if (error.response?.status !== 404) {
             showMessage(
-              "Could not fetch complete details from server. Showing available information.",
+              t('search.couldNotFetchDetails'),
               "error"
             );
           }
@@ -145,9 +147,9 @@ export default function SearchPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Search Voter Data</h1>
+        <h1 className="text-3xl font-bold text-gray-800">{t('search.searchVoters')}</h1>
         <p className="text-gray-500 mt-1">
-          Enter EPIC numbers separated by commas
+          {t('search.enterEpicNumbers')}
         </p>
       </div>
 
@@ -156,13 +158,13 @@ export default function SearchPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              EPIC Numbers
+              {t('search.epicNumbers')}
             </label>
             <div className="relative">
               <input
                 type="text"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="XKQ5571104, XKQ5571105..."
+                placeholder={t('search.epicPlaceholder')}
                 value={searchInput}
                 onChange={handleSearchChange}
               />
@@ -176,7 +178,7 @@ export default function SearchPage() {
               )}
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Tip: Search results will update as you type
+              {t('search.searchTip')}
             </p>
           </div>
 
@@ -192,7 +194,7 @@ export default function SearchPage() {
       {loading && (
         <div className="flex items-center justify-center py-8">
           <FaSpinner className="animate-spin text-indigo-600 text-2xl" />
-          <span className="ml-2 text-gray-600">Searching...</span>
+          <span className="ml-2 text-gray-600">{t('search.searching')}</span>
         </div>
       )}
 
@@ -200,7 +202,7 @@ export default function SearchPage() {
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b bg-gray-50">
             <h2 className="text-lg font-semibold text-gray-800">
-              Results ({results.length})
+              {t('search.results')} ({results.length})
             </h2>
           </div>
 
@@ -209,25 +211,25 @@ export default function SearchPage() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    EPIC Number
+                    {t('search.epicNumber')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Name
+                    {t('search.name')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Age
+                    {t('search.age')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Gender
+                    {t('search.gender')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    State
+                    {t('search.state')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Status
+                    {t('search.status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Details
+                    {t('search.details')}
                   </th>
                 </tr>
               </thead>
@@ -251,7 +253,7 @@ export default function SearchPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        {result.status || 'VALID'}
+                        {result.status || t('search.valid')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
@@ -272,7 +274,7 @@ export default function SearchPage() {
 
       {!loading && searchInput && results.length === 0 && !error && (
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg text-center">
-          No results found for "{searchInput}"
+          {t('search.noResultsFor')} "{searchInput}"
         </div>
       )}
 

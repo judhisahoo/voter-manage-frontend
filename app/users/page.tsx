@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { apiClient } from '@/app/lib/secureAxios';
 import { FaPlus, FaEdit, FaTrash, FaBan, FaCheck } from 'react-icons/fa';
 
@@ -26,6 +27,7 @@ interface FormData {
 
 export default function UsersPage() {
   const { user: currentUser, isAuthenticated, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   
   // State Management
@@ -99,23 +101,23 @@ export default function UsersPage() {
   const handleSubmit = useCallback(async () => {
     // Validation
     if (!formData.name.trim()) {
-      setError('Name is required');
+      setError(t('userManagement.nameRequired'));
       return;
     }
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError(t('userManagement.emailRequired'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Invalid email format');
+      setError(t('userManagement.invalidEmail'));
       return;
     }
     if (!selectedUser && !formData.password) {
-      setError('Password is required for new users');
+      setError(t('userManagement.passwordRequired'));
       return;
     }
     if (formData.password && formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('userManagement.passwordMinLength'));
       return;
     }
 
@@ -138,11 +140,11 @@ export default function UsersPage() {
       if (selectedUser) {
         // Update existing user
         await apiClient.put(`/users/${selectedUser._id}`, payload);
-        setSuccessMessage('User updated successfully!');
+        setSuccessMessage(t('userManagement.userUpdated'));
       } else {
         // Create new user (password is required, already validated above)
         await apiClient.post('/users', payload);
-        setSuccessMessage('User created successfully!');
+        setSuccessMessage(t('userManagement.userCreated'));
       }
 
       // Refresh users list
@@ -172,30 +174,31 @@ export default function UsersPage() {
   // Delete user
   const handleDeleteUser = useCallback(
     async (userId: string, userName: string) => {
-      if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+      if (!confirm(t('userManagement.confirmUserDelete', { name: userName }))) {
         return;
       }
 
       try {
         setError(null);
         await apiClient.delete(`/users/${userId}`);
-        setSuccessMessage('User deleted successfully!');
+        setSuccessMessage(t('userManagement.userDeleted'));
         setUsers(users.filter(u => u._id !== userId));
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
-        const errorMsg = err.message || 'Failed to delete user';
+        const errorMsg = err.message || t('common.error');
         setError(errorMsg);
         console.error('Delete error:', err);
       }
     },
-    [users]
+    [users, t]
   );
 
   // Toggle user block/unblock status
   const handleToggleStatus = useCallback(
     async (userId: string, currentStatus: string, userName: string) => {
       const action = currentStatus === 'active' ? 'block' : 'unblock';
-      if (!confirm(`Are you sure you want to ${action} user "${userName}"?`)) {
+      const confirmKey = currentStatus === 'active' ? 'userManagement.confirmUserBlock' : 'userManagement.confirmUserUnblock';
+      if (!confirm(t(confirmKey, { name: userName }))) {
         return;
       }
 
@@ -205,7 +208,7 @@ export default function UsersPage() {
         await apiClient.patch(`/users/${userId}/status`, {
           status: newStatus,
         });
-        setSuccessMessage(`User ${action}ed successfully!`);
+        setSuccessMessage(currentStatus === 'active' ? t('userManagement.userBlocked') : t('userManagement.userUnblocked'));
         
         // Update local state
         setUsers(
@@ -215,12 +218,12 @@ export default function UsersPage() {
         );
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
-        const errorMsg = err.message || `Failed to ${action} user`;
+        const errorMsg = err.message || t('common.error');
         setError(errorMsg);
         console.error('Status toggle error:', err);
       }
     },
-    [users]
+    [users, t]
   );
 
   // Close modal
@@ -246,15 +249,15 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">User Management</h1>
-          <p className="text-gray-500 mt-1">Manage system users and permissions</p>
+          <h1 className="text-3xl font-bold text-gray-800">{t('userManagement.userManagement')}</h1>
+          <p className="text-gray-500 mt-1">{t('userManagement.manageSystemUsers')}</p>
         </div>
         <button
           onClick={handleAddUser}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center gap-2 w-full md:w-auto justify-center"
         >
           <FaPlus />
-          Add User
+          {t('userManagement.addUser')}
         </button>
       </div>
 
@@ -289,16 +292,16 @@ export default function UsersPage() {
         {loading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4">Loading users...</p>
+            <p className="text-gray-500 mt-4">{t('userManagement.loadingUsers')}</p>
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500">No users found</p>
+            <p className="text-gray-500">{t('userManagement.noUsersFound')}</p>
             <button
               onClick={handleAddUser}
               className="mt-4 text-indigo-600 hover:text-indigo-700 font-semibold"
             >
-              Add the first user
+              {t('userManagement.addFirstUser')}
             </button>
           </div>
         ) : (
@@ -307,22 +310,22 @@ export default function UsersPage() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Name
+                    {t('userManagement.name')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Email
+                    {t('userManagement.email')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Role
+                    {t('userManagement.role')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Status
+                    {t('userManagement.status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Last Login
+                    {t('userManagement.lastLogin')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    Actions
+                    {t('userManagement.actions')}
                   </th>
                 </tr>
               </thead>
@@ -341,7 +344,7 @@ export default function UsersPage() {
                             : 'bg-blue-100 text-blue-800'
                         }`}
                       >
-                        {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
+                        {u.role === 'admin' ? t('userManagement.admin') : t('userManagement.support')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -352,13 +355,15 @@ export default function UsersPage() {
                             : 'bg-red-100 text-red-800'
                         }`}
                       >
-                        {u.status.charAt(0).toUpperCase() + u.status.slice(1)}
+                        {u.status === 'active' ? t('userManagement.active') : 
+                         u.status === 'blocked' ? t('userManagement.blocked') : 
+                         t('userManagement.inactive')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {u.lastLogin
                         ? new Date(u.lastLogin).toLocaleDateString()
-                        : 'Never'}
+                        : t('userManagement.never')}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2 flex-wrap">
@@ -412,7 +417,7 @@ export default function UsersPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-screen overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-800">
-                {selectedUser ? 'Edit User' : 'Add New User'}
+                {selectedUser ? t('userManagement.editUserTitle') : t('userManagement.addNewUser')}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -427,7 +432,7 @@ export default function UsersPage() {
               {/* Name Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('userManagement.fullName')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -442,7 +447,7 @@ export default function UsersPage() {
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address <span className="text-red-500">*</span>
+                  {t('userManagement.emailAddress')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -457,10 +462,10 @@ export default function UsersPage() {
               {/* Password Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  {t('userManagement.password')}
                   {selectedUser && (
                     <span className="text-xs text-gray-500 font-normal ml-2">
-                      (leave blank to keep current)
+                      ({t('userManagement.leaveBlankCurrent')})
                     </span>
                   )}
                   {!selectedUser && <span className="text-red-500">*</span>}
@@ -468,7 +473,7 @@ export default function UsersPage() {
                 <input
                   type="password"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder={selectedUser ? 'Leave blank to keep current' : 'Enter password'}
+                  placeholder={selectedUser ? t('userManagement.leaveBlankCurrent') : 'Enter password'}
                   value={formData.password || ''}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   disabled={isSubmitting}
@@ -478,7 +483,7 @@ export default function UsersPage() {
               {/* Role Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role <span className="text-red-500">*</span>
+                  {t('userManagement.role')} <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -488,8 +493,8 @@ export default function UsersPage() {
                   }
                   disabled={isSubmitting}
                 >
-                  <option value="support">Support User</option>
-                  <option value="admin">Admin User</option>
+                  <option value="support">{t('userManagement.supportUser')}</option>
+                  <option value="admin">{t('userManagement.adminUser')}</option>
                 </select>
               </div>
 
@@ -509,17 +514,17 @@ export default function UsersPage() {
                 className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting
-                  ? 'Saving...'
+                  ? t('userManagement.saving')
                   : selectedUser
-                  ? 'Update User'
-                  : 'Create User'}
+                  ? t('userManagement.updateUser')
+                  : t('userManagement.createUser')}
               </button>
               <button
                 onClick={handleCloseModal}
                 disabled={isSubmitting}
                 className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {t('userManagement.cancel')}
               </button>
             </div>
           </div>

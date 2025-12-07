@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { FaSearch, FaUser, FaShieldAlt, FaDatabase } from 'react-icons/fa';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { apiClient } from '@/app/lib/secureAxios';
 
 interface Activity {
@@ -29,6 +30,7 @@ const ActivityIcon = ({ type }: { type: string }) => {
 };
 
 export default function RecentActivity() {
+  const { t } = useLanguage();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,25 +45,25 @@ export default function RecentActivity() {
           {
             id: '1',
             type: 'search',
-            description: 'Searched for voters in Delhi',
+            description: t('dashboard.searchedVoters'),
             timestamp: new Date().toISOString(),
           },
           {
             id: '2',
             type: 'user',
-            description: 'Added new user: admin@example.com',
+            description: t('dashboard.addedNewUser'),
             timestamp: new Date(Date.now() - 3600000).toISOString(),
           },
           {
             id: '3',
             type: 'security',
-            description: 'Password changed',
+            description: t('dashboard.passwordChanged'),
             timestamp: new Date(Date.now() - 86400000).toISOString(),
           },
           {
             id: '4',
             type: 'data',
-            description: 'Updated voter database',
+            description: t('dashboard.updatedVoterDatabase'),
             timestamp: new Date(Date.now() - 172800000).toISOString(),
           },
         ];
@@ -72,7 +74,7 @@ export default function RecentActivity() {
 
         setActivities(mockActivities);
       } catch (err: any) {
-        setError(err.message || 'Failed to fetch activities');
+        setError(err.message || t('dashboard.failedToFetchActivities'));
       } finally {
         setLoading(false);
       }
@@ -104,14 +106,14 @@ export default function RecentActivity() {
   if (error) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-red-600">Error loading activities: {error}</p>
+        <p className="text-red-600">{t('dashboard.errorLoadingActivities')}: {error}</p>
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">{t('dashboard.recentActivity')}</h2>
       <div className="space-y-4">
         {formattedActivities.length > 0 ? (
           formattedActivities.map((activity) => (
@@ -128,7 +130,7 @@ export default function RecentActivity() {
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-center py-4">No activities yet</p>
+          <p className="text-gray-500 text-center py-4">{t('dashboard.noActivitiesYet')}</p>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import StatCard from './StatCard';
 import { FaUsers, FaSearch, FaUser, FaShieldAlt } from 'react-icons/fa';
 
@@ -15,28 +16,28 @@ interface Stat {
 
 const ADMIN_STATS: Stat[] = [
   {
-    label: 'Total Records',
+    label: 'dashboard.totalRecords',
     value: '12,458',
     icon: FaUsers,
     color: 'bg-blue-500',
     role: 'admin',
   },
   {
-    label: 'Today Searches',
+    label: 'dashboard.todaySearches',
     value: '342',
     icon: FaSearch,
     color: 'bg-green-500',
     role: 'admin',
   },
   {
-    label: 'Active Users',
+    label: 'dashboard.activeUsers',
     value: '28',
     icon: FaUser,
     color: 'bg-purple-500',
     role: 'admin',
   },
   {
-    label: 'API Calls',
+    label: 'dashboard.apiCalls',
     value: '1,247',
     icon: FaShieldAlt,
     color: 'bg-orange-500',
@@ -46,14 +47,14 @@ const ADMIN_STATS: Stat[] = [
 
 const SUPPORT_STATS: Stat[] = [
   {
-    label: 'My Searches',
+    label: 'dashboard.mySearches',
     value: '84',
     icon: FaSearch,
     color: 'bg-blue-500',
     role: 'support',
   },
   {
-    label: 'Records Found',
+    label: 'dashboard.recordsFound',
     value: '156',
     icon: FaUsers,
     color: 'bg-green-500',
@@ -63,6 +64,7 @@ const SUPPORT_STATS: Stat[] = [
 
 function AnalyticsChart() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   // Memoize stats based on user role
   const stats = useMemo(() => {
@@ -85,14 +87,14 @@ function AnalyticsChart() {
     <div>
       <div className="mb-4">
         <p className="text-sm text-gray-600">
-          Total: <span className="font-bold text-gray-900">{totalValue.toLocaleString()}</span>
+          {t('dashboard.total')}: <span className="font-bold text-gray-900">{totalValue.toLocaleString()}</span>
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
-            label={stat.label}
+            label={t(stat.label)}
             value={stat.value}
             icon={stat.icon}
             color={stat.color}

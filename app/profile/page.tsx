@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { FaUser, FaSave } from 'react-icons/fa';
 import { apiClient } from '../lib/secureAxios';
 
 export default function ProfilePage() {
   const { user, isAuthenticated, loading: authLoading, logout, updateUser } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
@@ -36,15 +38,15 @@ export default function ProfilePage() {
     try {
       // Update profile logic
       if (!formData.name.trim()) {
-        setMessage({type: 'error', text: 'Name is required'});
+        setMessage({type: 'error', text: t('profile.nameRequired')});
         return;
       }
       if (!formData.email.trim()) {
-        setMessage({type: 'error', text:'Email is required'});
+        setMessage({type: 'error', text: t('profile.emailRequired')});
         return;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        setMessage({type: 'error', text:'Invalid email format'});
+        setMessage({type: 'error', text: t('profile.invalidEmail')});
         return;
       }
 
@@ -58,9 +60,9 @@ export default function ProfilePage() {
         updateUser(response.user);
       }
       
-      setMessage({ type: 'success', text: response?.message || 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: response?.message || t('profile.profileUpdateSuccess') });
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
+      setMessage({ type: 'error', text: error.message || t('profile.profileUpdateError') });
     } finally {
       setLoading(false);
     }
@@ -75,8 +77,8 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Profile Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account information</p>
+        <h1 className="text-3xl font-bold text-gray-800">{t('profile.profileSettings')}</h1>
+        <p className="text-gray-500 mt-1">{t('profile.manageAccount')}</p>
       </div>
 
       {message.text && (
@@ -95,13 +97,13 @@ export default function ProfilePage() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
           <FaUser className="text-indigo-600" />
-          Profile Information
+          {t('profile.profileInformation')}
         </h2>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
+              {t('profile.fullName')}
             </label>
             <input
               type="text"
@@ -113,7 +115,7 @@ export default function ProfilePage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              {t('profile.emailAddress')}
             </label>
             <input
               type="email"
@@ -125,7 +127,7 @@ export default function ProfilePage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Role
+              {t('profile.role')}
             </label>
             <input
               type="text"
@@ -141,7 +143,7 @@ export default function ProfilePage() {
             className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2"
           >
             <FaSave />
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? t('profile.saving') : t('profile.saveChanges')}
           </button>
         </div>
       </div>
@@ -149,16 +151,16 @@ export default function ProfilePage() {
 
       {/* Logout Section */}
       <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Danger Zone</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-4">{t('profile.dangerZone')}</h2>
         <button
           onClick={() => {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm(t('common.confirmLogout'))) {
               logout();
             }
           }}
           className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition"
         >
-          Logout
+          {t('profile.logout')}
         </button>
       </div>
     </div>

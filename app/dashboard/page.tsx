@@ -5,6 +5,7 @@ import { Suspense, useEffect } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { trackPageMetrics } from '@/app/lib/performance';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 // Lazy load heavy components
 const AnalyticsChart = dynamic(() => import('@/app/components/AnalyticsChart'), {
@@ -24,6 +25,7 @@ const RecentActivity = dynamic(() => import('@/app/components/RecentActivity'), 
 
 export default function DashboardPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   // Track page performance
@@ -54,10 +56,10 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-800">
-          Welcome back, {user?.name}
+          {t('dashboard.welcomeBack')}, {user?.name}
         </h1>
         <p className="text-gray-500 mt-1">
-          Role: <span className="font-semibold capitalize">{user?.role}</span>
+          {t('dashboard.role')}: <span className="font-semibold capitalize">{t(`userManagement.${user?.role}`)}</span>
         </p>
       </div>
 

@@ -17,6 +17,8 @@ import {
   FaFileImport
 } from 'react-icons/fa';
 import { useAuth } from '@/app/context/AuthContext';
+import { useLanguage } from '@/app/context/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,6 +28,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -50,24 +53,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = user?.role === 'admin'
     ? [
-        { label: 'Dashboard', path: '/dashboard', icon: FaHome },
-        { label: 'Search', path: '/search', icon: FaSearch },
-        { label: 'Data List', path: '/data-list', icon: FaDatabase },
-        { label: 'Import Data', path: '/import-data', icon: FaFileImport },
-        { label: 'Manage Users', path: '/users', icon: FaUserShield },
-        { label: 'Profile', path: '/profile', icon: FaUser },
-        { label: 'Change Password', path: '/profile/change-password', icon: FaLock }
+        { label: t('navigation.dashboard'), path: '/dashboard', icon: FaHome },
+        { label: t('navigation.search'), path: '/search', icon: FaSearch },
+        { label: t('navigation.dataList'), path: '/data-list', icon: FaDatabase },
+        { label: t('navigation.importData'), path: '/import-data', icon: FaFileImport },
+        { label: t('navigation.manageUsers'), path: '/users', icon: FaUserShield },
+        { label: t('navigation.profile'), path: '/profile', icon: FaUser },
+        { label: t('navigation.changePassword'), path: '/profile/change-password', icon: FaLock }
       ]
     : [
-        { label: 'Dashboard', path: '/dashboard', icon: FaHome },
-        { label: 'Search', path: '/search', icon: FaSearch },
-        { label: 'Data List', path: '/data-list', icon: FaDatabase },
-        { label: 'Profile', path: '/profile', icon: FaUser },
-        { label: 'Change Password', path: '/profile/change-password', icon: FaLock }
+        { label: t('navigation.dashboard'), path: '/dashboard', icon: FaHome },
+        { label: t('navigation.search'), path: '/search', icon: FaSearch },
+        { label: t('navigation.dataList'), path: '/data-list', icon: FaDatabase },
+        { label: t('navigation.profile'), path: '/profile', icon: FaUser },
+        { label: t('navigation.changePassword'), path: '/profile/change-password', icon: FaLock }
       ];
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
+    if (confirm(t('common.confirmLogout'))) {
       logout();
     }
   };
@@ -123,16 +126,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             : 'relative z-0'
         } w-64 h-screen bg-white shadow-lg flex flex-col`}
       >
-          {/* Logo */}
+          {/* Logo and Language Switcher */}
           <div className="p-6 border-b">
             <div className="flex items-center gap-3">
               <div className="bg-indigo-600 p-2 rounded-lg">
                 <FaUserShield className="text-white text-2xl" />
               </div>
-              <div>
-                <h2 className="font-bold text-gray-800">Voter System</h2>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <div className="flex-1">
+                <h2 className="font-bold text-gray-800">{t('navigation.voterSystem')}</h2>
+                <p className="text-xs text-gray-500 capitalize">{t(`navigation.${user?.role}`)}</p>
               </div>
+              <LanguageSwitcher />
             </div>
           </div>
 
@@ -164,7 +168,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition"
             >
               <FaSignOutAlt className="text-xl" />
-              <span className="font-medium">Logout</span>
+              <span className="font-medium">{t('navigation.logout')}</span>
             </button>
           </div>
       </div>

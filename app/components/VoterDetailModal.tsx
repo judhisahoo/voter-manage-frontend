@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/app/context/LanguageContext";
 import { FaTimes, FaMapMarkerAlt, FaUser, FaIdCard } from "react-icons/fa";
 
 interface VoterData {
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
+  const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -75,9 +77,9 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
           <div className="flex items-center gap-3">
             <FaIdCard className="text-white text-2xl" />
             <div>
-              <h2 className="text-white text-xl font-bold">Voter Details</h2>
+              <h2 className="text-white text-xl font-bold">{t('voterModal.voterDetails')}</h2>
               <p className="text-indigo-100 text-sm">
-                EPIC No: {voter.epic_no}
+                {t('voterModal.epicNo')}: {voter.epic_no}
               </p>
             </div>
           </div>
@@ -100,7 +102,7 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
         >
           {/* Status */}
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-800">Status</h3>
+            <h3 className="text-lg font-semibold text-gray-800">{t('voterModal.status')}</h3>
             <span
               className={`px-4 py-2 rounded-full text-white font-semibold ${
                 voter.status === "VALID" || voter.status === "Active" 
@@ -115,19 +117,19 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
           {/* Personal Information */}
           <div className="border-t pt-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800">
-              <FaUser className="text-indigo-600" /> Personal Information
+              <FaUser className="text-indigo-600" /> {t('voterModal.personalInformation')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Info label="Full Name" value={voter.name} />
-              <Info label="Age" value={`${voter.age} years`} />
-              <Info label="Gender" value={voter.gender} />
-              <Info label="Father's Name" value={voter.father_name} />
-              <Info label="Relation Type" value={voter.relation_type} />
-              <Info label="Relation Name" value={voter.relation_name} />
+              <Info label={t('voterModal.fullName')} value={voter.name} />
+              <Info label={t('voterModal.age')} value={`${voter.age} ${t('voterModal.years')}`} />
+              <Info label={t('voterModal.gender')} value={voter.gender} />
+              <Info label={t('voterModal.fatherName')} value={voter.father_name} />
+              <Info label={t('voterModal.relationType')} value={voter.relation_type} />
+              <Info label={t('voterModal.relationName')} value={voter.relation_name} />
               {voter.name_in_regional_lang && (
                 <Info
-                  label="Regional Name"
+                  label={t('voterModal.regionalName')}
                   value={voter.name_in_regional_lang}
                 />
               )}
@@ -137,32 +139,32 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
           {/* Address Information */}
           <div className="border-t pt-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-800">
-              <FaMapMarkerAlt className="text-indigo-600" /> Address Information
+              <FaMapMarkerAlt className="text-indigo-600" /> {t('voterModal.addressInformation')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Info label="State" value={voter.state} />
-              <Info label="District" value={voter.district} />
-              <Info label="City" value={voter.city} />
+              <Info label={t('voterModal.state')} value={voter.state} />
+              <Info label={t('voterModal.district')} value={voter.district} />
+              <Info label={t('voterModal.city')} value={voter.city} />
               <Info
-                label="Assembly Constituency"
+                label={t('voterModal.assemblyConstituency')}
                 value={voter.assembly_constituency}
               />
               <Info
-                label="Parliamentary Constituency"
+                label={t('voterModal.parliamentaryConstituency')}
                 value={voter.parliamentary_constituency}
               />
-              <Info label="Part Number" value={voter.part_number} />
-              <Info label="Part Name" value={voter.part_name} />
+              <Info label={t('voterModal.partNumber')} value={voter.part_number} />
+              <Info label={t('voterModal.partName')} value={voter.part_name} />
 
               {voter.polling_station && (
                 <div className="lg:col-span-4">
-                  <Info label="Polling Station" value={voter.polling_station} />
+                  <Info label={t('voterModal.pollingStation')} value={voter.polling_station} />
                 </div>
               )}
               {voter.address && (
                 <div className="lg:col-span-4">
-                  <Info label="Address" value={voter.address} />
+                  <Info label={t('voterModal.address')} value={voter.address} />
                 </div>
               )}
             </div>
@@ -172,15 +174,15 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
           {(voter.dataSource || voter.createdAt) && (
             <div className="border-t pt-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                Additional Information
+                {t('voterModal.additionalInformation')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {voter.dataSource && (
-                  <Info label="Data Source" value={voter.dataSource} />
+                  <Info label={t('voterModal.dataSource')} value={voter.dataSource} />
                 )}
                 {voter.createdAt && (
                   <Info 
-                    label="Added On" 
+                    label={t('voterModal.addedOn')} 
                     value={new Date(voter.createdAt).toLocaleDateString('en-IN', {
                       year: 'numeric',
                       month: 'long',
@@ -200,16 +202,16 @@ export default function VoterDetailModal({ isOpen, voter, onClose }: Props) {
               onClick={closeModal}
               className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition"
             >
-              Close
+              {t('voterModal.close')}
             </button>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(JSON.stringify(voter, null, 2));
-                alert('Voter details copied to clipboard!');
+                alert(t('voterModal.voterDetailsCopied'));
               }}
               className="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
             >
-              Copy Details
+              {t('voterModal.copyDetails')}
             </button>
           </div>
         </div>

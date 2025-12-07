@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import DashboardLayout from './components/DashboardLayout';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -26,16 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="x-ua-compatible" content="ie=edge" />
       </head>
       <body className={inter.className}>
         <ErrorBoundary>
-          <AuthProvider>
-            <DashboardLayout>{children}</DashboardLayout>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <DashboardLayout>{children}</DashboardLayout>
+            </AuthProvider>
+          </LanguageProvider>
         </ErrorBoundary>
       </body>
     </html>
