@@ -13,7 +13,8 @@ import {
   FaUserShield,
   FaBars,
   FaTimes,
-  FaLock
+  FaLock,
+  FaFileImport
 } from 'react-icons/fa';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -52,6 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         { label: 'Dashboard', path: '/dashboard', icon: FaHome },
         { label: 'Search', path: '/search', icon: FaSearch },
         { label: 'Data List', path: '/data-list', icon: FaDatabase },
+        { label: 'Import Data', path: '/import-data', icon: FaFileImport },
         { label: 'Manage Users', path: '/users', icon: FaUserShield },
         { label: 'Profile', path: '/profile', icon: FaUser },
         { label: 'Change Password', path: '/profile/change-password', icon: FaLock }
